@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Car Buying Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchBtn = document.getElementById('searchBtn');
+      const promptInput = document.getElementById('promptInput');
+      const vehicleOutput = document.getElementById('vehicleOutput');
+      const chatbotToggle = document.getElementById('chatbotToggle');
+      const chatbotWindow = document.getElementById('chatbotWindow');
+      const chatbotInput = document.getElementById('chatbotInput');
+      const chatbotSend = document.getElementById('chatbotSend');
+      const chatbotMessages = document.getElementById('chatbotMessages');
+
+      searchBtn.addEventListener('click', () => {
+        const prompt = promptInput.value.trim().toLowerCase();
+        let recommendation = '';
+
+        if (prompt.includes('family')) {
+          recommendation = 'We recommend a midsize SUV with 3 rows of seating.';
+        } else if (prompt.includes('commute') || prompt.includes('fuel')) {
+          recommendation = 'We recommend a hybrid sedan with excellent fuel economy.';
+        } else if (prompt.includes('budget') || prompt.includes('cheap')) {
+          recommendation = 'We recommend a compact car under $20k.';
+        } else if (prompt.includes('luxury')) {
+          recommendation = 'We recommend a certified pre-owned luxury sedan with premium features.';
+        } else {
+          recommendation = 'We suggest a hybrid sedan under $25k with excellent fuel economy.';
+        }
+
+        if (prompt.length > 0) {
+          vehicleOutput.innerHTML = `<div class='bg-white text-blue-800 p-4 rounded shadow animate-fade-in'><strong>Recommended:</strong> ${recommendation}</div>`;
+        } else {
+          vehicleOutput.innerHTML = `<div class='bg-red-100 text-red-700 p-4 rounded shadow animate-fade-in'>Please enter a valid search prompt.</div>`;
+        }
+      });
+
+      chatbotToggle.addEventListener('click', () => {
+        chatbotWindow.classList.toggle('hidden');
+      });
+
+      chatbotSend.addEventListener('click', () => {
+        const message = chatbotInput.value.trim();
+        if (message) {
+          const userMsg = `<div class='text-right mb-2'><span class='inline-block bg-blue-700 text-white px-4 py-2 rounded-lg'>${message}</span></div>`;
+          chatbotMessages.innerHTML += userMsg;
+          chatbotInput.value = '';
+          chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+          fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+          })
+          .then(res => res.json())
+          .then(data => {
+            const botMsg = `<div class='text-left mb-2'><span class='inline-block bg-gray-200 text-blue-800 px-4 py-2 rounded-lg'>${data.reply}</span></div>`;
+            chatbotMessages.innerHTML += botMsg;
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+          })
+          .catch(err => {
+            chatbotMessages.innerHTML += `<div class='text-left text-red-500'>Error: ${err.message}</div>`;
+          });
+        }
+      });
+    });
+  </script>
+  <style>
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-blue-600 text-white font-sans">
+  <!-- Navigation -->
+  <header class="flex justify-between items-center px-6 py-4 bg-blue-700">
+    <div class="text-xl font-bold">AUTOMOTIVE</div>
+    <nav class="space-x-6">
+      <a href="#" class="hover:underline">How It Works</a>
+      <a href="#" class="hover:underline">About Us</a>
+      <a href="#" class="hover:underline">FAQ</a>
+      <a href="#" class="hover:underline font-semibold">Sign In</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="text-center py-16 px-4">
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">Find and Buy Your Perfect Car Online</h1>
+    <p class="text-lg mb-8">Customize your search to get matched with the best options</p>
+
+    <div class="max-w-2xl mx-auto space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <select class="p-3 rounded text-black">
+          <option>Best-suited vehicles</option>
+        </select>
+        <select class="p-3 rounded text-black">
+          <option>All Makes</option>
+        </select>
+        <select class="p-3 rounded text-black">
+          <option>Any</option>
+        </select>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <input id="promptInput" type="text" class="flex-grow p-3 rounded text-black" placeholder="Effective filtering prompt">
+        <button id="searchBtn" class="bg-white text-blue-700 px-6 py-3 rounded font-semibold">Search</button>
+      </div>
+      <div id="vehicleOutput" class="mt-6"></div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="bg-white text-blue-800 py-12">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 px-6">
+      <div class="bg-white p-6 rounded shadow text-center">
+        <div class="text-3xl mb-4">🚗</div>
+        <h3 class="font-bold text-lg mb-2">Vehicle Matching</h3>
+        <p>Receive recommendations tailored to your needs and budget.</p>
+      </div>
+      <div class="bg-white p-6 rounded shadow text-center">
+        <div class="text-3xl mb-4">⚖️</div>
+        <h3 class="font-bold text-lg mb-2">Price Comparison</h3>
+        <p>Compare prices from multiple dealers to find the best deals.</p>
+      </div>
+      <div class="bg-white p-6 rounded shadow text-center">
+        <div class="text-3xl mb-4">💵</div>
+        <h3 class="font-bold text-lg mb-2">Transparent Pricing</h3>
+        <p>See the actual price with no hidden fees or surprises.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chatbot -->
+  <button id="chatbotToggle" class="fixed bottom-6 right-6 bg-white text-blue-700 font-bold px-4 py-2 rounded-full shadow-lg">💬 Chat</button>
+  <div id="chatbotWindow" class="hidden fixed bottom-20 right-6 bg-white text-blue-900 w-80 h-96 p-4 rounded-lg shadow-lg flex flex-col">
+    <div class="flex-1 overflow-y-auto mb-4" id="chatbotMessages"></div>
+    <div class="flex">
+      <input id="chatbotInput" type="text" class="flex-grow p-2 border border-blue-300 rounded-l" placeholder="Ask me anything...">
+      <button id="chatbotSend" class="bg-blue-700 text-white px-4 rounded-r">Send</button>
+    </div>
+  </div>
+</body>
+</html>
